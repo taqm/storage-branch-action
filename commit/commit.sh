@@ -29,12 +29,12 @@ if git ls-remote --exit-code --heads origin "$STORAGE_BRANCH" > /dev/null 2>&1; 
   BRANCH_EXISTS=true
 fi
 
-# Setup git config
-git config user.name "github-actions[bot]"
-git config user.email "github-actions[bot]@users.noreply.github.com"
-
 cd "$TEMP_DIR"
 git init -q
+
+# Setup git config (must be after git init)
+git config user.name "github-actions[bot]"
+git config user.email "github-actions[bot]@users.noreply.github.com"
 
 if [ "$BRANCH_EXISTS" = "true" ]; then
   # Fetch existing branch
