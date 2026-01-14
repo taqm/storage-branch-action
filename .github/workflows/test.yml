@@ -1,0 +1,119 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # テスト用ファイルを作成
+      - name: Create test files
+        run: |
+          echo "test content $(date +%s)" > test-file.txt
+          mkdir -p data
+          echo '{"key": "value"}' > data/test.json
+
+      # ストレージブランチにコミット
+      - name: Commit to storage branch
+        uses: ./commit
+        with:
+          branch: test-storage
+          files: |
+            test-file.txt storage/test-file.txt
+            data/test.json storage/data.json
+          message: 'Test commit'
+
+      # ファイルを削除して、checkoutで復元できるか確認
+      - name: Remove test files
+        run: |
+          rm -rf test-file.txt data/
+
+      # ストレージブランチからチェックアウト
+      - name: Checkout from storage branch
+        uses: ./checkout
+        with:
+          branch: test-storage
+          files: |
+            storage/test-file.txt restored-file.txt
+            storage/data.json restored-data.json
+
+      # 復元されたファイルを検証
+      - name: Verify restored files
+        run: |
+          echo "=== Checking restored files ==="
+
+          if [ -f restored-file.txt ]; then
+            echo "✓ restored-file.txt exists"
+            cat restored-file.txt
+          else
+            echo "✗ restored-file.txt not found"
+            exit 1
+          fi
+
+          if [ -f restored-data.json ]; then
+            echo "✓ restored-data.json exists"
+            cat restored-data.json
+          else
+            echo "✗ restored-data.json not found"
+            exit 1
+          fi
+
+  test-missing-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 存在しないブランチからのcheckoutはスキップされる
+      - name: Checkout from non-existent branch (should skip)
+        uses: ./checkout
+        with:
+          branch: non-existent-branch-${{ github.run_id }}
+          files: |
+            some-file.txt output.txt
+
+      - name: Verify checkout was skipped
+        run: |
+          if [ ! -f output.txt ]; then
+            echo "✓ Correctly skipped checkout from non-existent branch"
+          else
+            echo "✗ File should not exist"
+            exit 1
+          fi
+
+  test-fail-on-missing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # テスト用ブランチを作成
+      - name: Create storage branch with test file
+        uses: ./commit
+        with:
+          branch: test-fail-on-missing-${{ github.run_id }}
+          files: |
+            README.md existing-file.txt
+
+      # 存在しないファイルのcheckout (fail-on-missing: false)
+      - name: Checkout missing file (should warn)
+        uses: ./checkout
+        with:
+          branch: test-fail-on-missing-${{ github.run_id }}
+          files: |
+            non-existent.txt output.txt
+          fail-on-missing: 'false'
+
+      - name: Verify warning behavior
+        run: |
+          if [ ! -f output.txt ]; then
+            echo "✓ Missing file was skipped with warning"
+          else
+            echo "✗ File should not exist"
+            exit 1
+          fi
