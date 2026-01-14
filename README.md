@@ -97,6 +97,27 @@ files: |
   - checkout: `fail-on-missing: false` (デフォルト) なら警告のみ、`true` ならエラー
   - commit: エラー
 
+## Tips
+
+### orphanブランチを事前に作成する
+
+commit actionは自動でorphanブランチを作成しますが、手動で作成することもできます。
+事前にファイルを置いておくことで、初期データとして使うことができます。
+
+```bash
+# orphanブランチを作成（履歴なし）
+git checkout --orphan storage
+git rm -rf .
+
+# 初期データを配置（任意）
+echo '{}' > cache.json
+
+git add -A
+git commit -m "Initialize storage branch"
+git push origin storage
+git checkout main
+```
+
 ## License
 
 MIT
