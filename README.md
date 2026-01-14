@@ -18,6 +18,9 @@ GitHub Actionsで専用ブランチにデータを永続化するためのAction
 ## Usage
 
 ```yaml
+permissions:
+  contents: write  # commit action requires write permission
+
 jobs:
   build:
     runs-on: ubuntu-latest
