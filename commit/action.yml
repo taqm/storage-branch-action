@@ -1,0 +1,35 @@
+name: 'Storage Branch Commit'
+description: 'Commit files to a storage branch'
+author: 'taqm'
+
+inputs:
+  branch:
+    description: 'Name of the storage branch to commit to'
+    required: true
+    default: 'storage'
+  files:
+    description: |
+      File mappings (one per line): <source> <destination>
+      Use quotes for paths with spaces: "path with space/file.txt" dest.txt
+    required: true
+  working-directory:
+    description: 'Working directory for source paths'
+    required: false
+    default: '.'
+  message:
+    description: 'Commit message'
+    required: false
+    default: 'Update storage files'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Commit files to storage branch
+      shell: bash
+      env:
+        INPUT_BRANCH: ${{ inputs.branch }}
+        INPUT_FILES: ${{ inputs.files }}
+        INPUT_WORKING_DIR: ${{ inputs.working-directory }}
+        INPUT_MESSAGE: ${{ inputs.message }}
+        SCRIPT_DIR: ${{ github.action_path }}/../scripts
+      run: bash "${{ github.action_path }}/commit.sh"
