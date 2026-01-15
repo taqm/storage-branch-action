@@ -36,9 +36,12 @@ git init -q
 git config user.name "github-actions[bot]"
 git config user.email "github-actions[bot]@users.noreply.github.com"
 
+# Get authenticated remote URL from workspace
+ORIGIN_URL=$(git -C "$GITHUB_WORKSPACE" remote get-url origin)
+git remote add origin "$ORIGIN_URL"
+
 if [ "$BRANCH_EXISTS" = "true" ]; then
   # Fetch existing branch from remote
-  git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
   git fetch origin "$STORAGE_BRANCH" --depth=1
   git checkout -b "$STORAGE_BRANCH" FETCH_HEAD
 else
