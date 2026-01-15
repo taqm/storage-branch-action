@@ -91,6 +91,9 @@ jobs:
   - checkout: `fail-on-missing: false` (デフォルト) なら警告のみ、`true` ならエラー
   - commit: エラー
 
+- **差分がない場合**:
+  - commit: コミットせずにスキップ（正常終了）
+
 ## Tips
 
 ### orphanブランチを事前に作成する
