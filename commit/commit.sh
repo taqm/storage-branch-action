@@ -23,10 +23,12 @@ Run: $RUN_URL"
 TEMP_DIR=$(mktemp -d)
 trap "rm -rf $TEMP_DIR" EXIT
 
-# Check if branch exists
+# Check if branch exists and fetch to workspace if needed
 BRANCH_EXISTS=false
 if git ls-remote --exit-code --heads origin "$STORAGE_BRANCH" > /dev/null 2>&1; then
   BRANCH_EXISTS=true
+  # Fetch to workspace so we can use it
+  git fetch origin "$STORAGE_BRANCH:$STORAGE_BRANCH" --depth=1 2>/dev/null || true
 fi
 
 cd "$TEMP_DIR"
@@ -38,8 +40,7 @@ git config user.email "github-actions[bot]@users.noreply.github.com"
 
 if [ "$BRANCH_EXISTS" = "true" ]; then
   # Fetch existing branch from workspace
-  git fetch "$GITHUB_WORKSPACE/.git" "$STORAGE_BRANCH" --depth=1 2>/dev/null || \
-    git fetch "$GITHUB_WORKSPACE/.git" "refs/remotes/origin/$STORAGE_BRANCH:refs/heads/$STORAGE_BRANCH" --depth=1
+  git fetch "$GITHUB_WORKSPACE/.git" "$STORAGE_BRANCH" --depth=1
   git checkout -b "$STORAGE_BRANCH" FETCH_HEAD
 else
   # Create orphan branch
