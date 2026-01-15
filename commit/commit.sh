@@ -3,10 +3,10 @@ set -euo pipefail
 
 # Required environment variables:
 #   INPUT_BRANCH - storage branch name
-#   INPUT_FILES - file mappings (src dest per line)
-#   INPUT_WORKING_DIR - working directory for source paths
+#   INPUT_FROM - source file path
+#   INPUT_TO - destination file path
+#   INPUT_WORKING_DIR - working directory for source path
 #   INPUT_MESSAGE - commit message
-#   SCRIPT_DIR - directory containing scripts
 #   GITHUB_WORKSPACE - workspace directory
 #   GITHUB_SERVER_URL - GitHub server URL
 #   GITHUB_REPOSITORY - repository name
@@ -47,29 +47,26 @@ else
   echo "::notice::Creating new orphan branch '$STORAGE_BRANCH'"
 fi
 
-# Copy files
-echo "$INPUT_FILES" | python3 "$SCRIPT_DIR/parse_files.py" | while IFS=$'\t' read -r src dest; do
-  if [ -z "$src" ] || [ -z "$dest" ]; then
-    continue
-  fi
+# Copy file
+src="$INPUT_FROM"
+dest="$INPUT_TO"
 
-  # Apply working directory to source
-  if [ "$WORKING_DIR" != "." ]; then
-    src_path="$GITHUB_WORKSPACE/$WORKING_DIR/$src"
-  else
-    src_path="$GITHUB_WORKSPACE/$src"
-  fi
+# Apply working directory to source
+if [ "$WORKING_DIR" != "." ]; then
+  src_path="$GITHUB_WORKSPACE/$WORKING_DIR/$src"
+else
+  src_path="$GITHUB_WORKSPACE/$src"
+fi
 
-  if [ ! -f "$src_path" ]; then
-    echo "::error::Source file '$src_path' not found"
-    exit 1
-  fi
+if [ ! -f "$src_path" ]; then
+  echo "::error::Source file '$src_path' not found"
+  exit 1
+fi
 
-  # Create destination directory and copy file
-  mkdir -p "$(dirname "$dest")"
-  cp "$src_path" "$dest"
-  echo "✓ Staged: $src -> $dest"
-done
+# Create destination directory and copy file
+mkdir -p "$(dirname "$dest")"
+cp "$src_path" "$dest"
+echo "✓ Staged: $src -> $dest"
 
 # Stage all changes
 git add -A
@@ -86,6 +83,7 @@ git push -f "$GITHUB_WORKSPACE/.git" "$STORAGE_BRANCH:$STORAGE_BRANCH"
 
 # Push to remote
 cd "$GITHUB_WORKSPACE"
+git fetch origin "$STORAGE_BRANCH" 2>/dev/null || true
 git push origin "$STORAGE_BRANCH"
 
 echo "✓ Successfully committed to '$STORAGE_BRANCH'"

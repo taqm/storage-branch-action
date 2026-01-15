@@ -17,7 +17,7 @@ GitHub Actions用のComposite Action。専用ブランチにデータを永続�
 ```
 
 - Composite Actionのため、ビルドプロセスは不要
-- ファイルパスのパースにPython3 shlex使用（クォート対応）
+- 1回の呼び出しで1ファイルのみ処理（複数ファイルは複数回呼び出し）
 
 ## Development
 
@@ -36,8 +36,8 @@ jobs:
       - uses: ./checkout
         with:
           branch: test-storage
-          files: |
-            test.txt output/test.txt
+          from: test.txt
+          to: output/test.txt
 ```
 
 ### リリース
@@ -53,7 +53,7 @@ git push -f origin v1
 
 ## Key Implementation Details
 
-- `files`入力はスペース区切り（`src dest`）、クォート対応（Python shlex）
+- `from`/`to` で単一ファイルを指定（複数ファイルは複数回呼び出し）
 - ブランチが存在しない場合、commitアクションでorphanブランチとして自動作成
 - checkoutでファイルがない場合は `fail-on-missing` パラメータで挙動制御
 - `working-directory` はcheckout時はdestパス、commit時はsrcパスにのみ影響

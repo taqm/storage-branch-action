@@ -7,13 +7,14 @@ inputs:
     description: 'Name of the storage branch to checkout from'
     required: true
     default: 'storage'
-  files:
-    description: |
-      File mappings (one per line): <source> <destination>
-      Use quotes for paths with spaces: "path with space/file.txt" dest.txt
+  from:
+    description: 'Source file path in storage branch'
+    required: true
+  to:
+    description: 'Destination file path'
     required: true
   working-directory:
-    description: 'Working directory for destination paths'
+    description: 'Working directory for destination path'
     required: false
     default: '.'
   fail-on-missing:
@@ -28,8 +29,8 @@ runs:
       shell: bash
       env:
         INPUT_BRANCH: ${{ inputs.branch }}
-        INPUT_FILES: ${{ inputs.files }}
+        INPUT_FROM: ${{ inputs.from }}
+        INPUT_TO: ${{ inputs.to }}
         INPUT_WORKING_DIR: ${{ inputs.working-directory }}
         INPUT_FAIL_ON_MISSING: ${{ inputs.fail-on-missing }}
-        SCRIPT_DIR: ${{ github.action_path }}/../scripts
       run: bash "${{ github.action_path }}/checkout.sh"

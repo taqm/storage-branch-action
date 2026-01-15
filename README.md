@@ -31,9 +31,14 @@ jobs:
       - uses: taqm/storage-branch-action/checkout@v1
         with:
           branch: storage
-          files: |
-            cache/build-cache.json .cache/build-cache.json
-            data/previous-results.json data/previous.json
+          from: cache/build-cache.json
+          to: .cache/build-cache.json
+
+      - uses: taqm/storage-branch-action/checkout@v1
+        with:
+          branch: storage
+          from: data/previous-results.json
+          to: data/previous.json
 
       # ビルド処理...
       - run: npm run build
@@ -42,10 +47,16 @@ jobs:
       - uses: taqm/storage-branch-action/commit@v1
         with:
           branch: storage
-          files: |
-            .cache/build-cache.json cache/build-cache.json
-            dist/results.json data/previous-results.json
+          from: .cache/build-cache.json
+          to: cache/build-cache.json
           message: 'Update build cache'
+
+      - uses: taqm/storage-branch-action/commit@v1
+        with:
+          branch: storage
+          from: dist/results.json
+          to: data/previous-results.json
+          message: 'Update build results'
 ```
 
 ## Inputs
@@ -55,7 +66,8 @@ jobs:
 | Name | Description | Required | Default |
 |------|-------------|----------|---------|
 | `branch` | ストレージブランチ名 | No | `storage` |
-| `files` | ファイルマッピング（1行1ペア） | Yes | - |
+| `from` | ストレージブランチ内のファイルパス | Yes | - |
+| `to` | ワークスペース内の保存先パス | Yes | - |
 | `working-directory` | toパスの基準ディレクトリ | No | `.` |
 | `fail-on-missing` | ファイルがない場合にエラーにするか | No | `false` |
 
@@ -64,28 +76,10 @@ jobs:
 | Name | Description | Required | Default |
 |------|-------------|----------|---------|
 | `branch` | ストレージブランチ名 | No | `storage` |
-| `files` | ファイルマッピング（1行1ペア） | Yes | - |
+| `from` | ワークスペース内のファイルパス | Yes | - |
+| `to` | ストレージブランチ内の保存先パス | Yes | - |
 | `working-directory` | fromパスの基準ディレクトリ | No | `.` |
 | `message` | コミットメッセージ | No | `Update storage files` |
-
-## File Mapping Format
-
-```yaml
-files: |
-  <source> <destination>
-  source/path/file.txt dest/path/file.txt
-  another/file.json data/file.json
-```
-
-パスにスペースを含む場合はクォートで囲む:
-```yaml
-files: |
-  "path with space/file.txt" "dest path/file.txt"
-  'single quotes work too.txt' dest.txt
-```
-
-- **checkout**: 左がストレージブランチ内のパス、右がワークスペース内のパス
-- **commit**: 左がワークスペース内のパス、右がストレージブランチ内のパス
 
 ## Behavior
 
