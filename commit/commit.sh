@@ -37,8 +37,9 @@ git config user.name "github-actions[bot]"
 git config user.email "github-actions[bot]@users.noreply.github.com"
 
 if [ "$BRANCH_EXISTS" = "true" ]; then
-  # Fetch existing branch
-  git fetch "$GITHUB_WORKSPACE/.git" "$STORAGE_BRANCH" --depth=1
+  # Fetch existing branch from remote
+  git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+  git fetch origin "$STORAGE_BRANCH" --depth=1
   git checkout -b "$STORAGE_BRANCH" FETCH_HEAD
 else
   # Create orphan branch
@@ -79,11 +80,6 @@ fi
 
 # Commit and push
 git commit -m "$COMMIT_MESSAGE"
-git push -f "$GITHUB_WORKSPACE/.git" "$STORAGE_BRANCH:$STORAGE_BRANCH"
-
-# Push to remote
-cd "$GITHUB_WORKSPACE"
-git fetch origin "$STORAGE_BRANCH" 2>/dev/null || true
-git push origin "$STORAGE_BRANCH"
+git push -f origin "$STORAGE_BRANCH"
 
 echo "✓ Successfully committed to '$STORAGE_BRANCH'"
